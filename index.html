@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aviator tailor</title>
+  <style>                                      
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 3em;
+      color: #f39c12;
+      text-shadow: 2px 2px #000;
+    }
+
+    #balance, #multiplier, #message {
+      font-size: 1.5em;
+      margin: 10px;
+    }
+
+    input, button {
+      font-size: 1.2em;
+      margin: 10px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      background: #27ae60;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2ecc71;
+    }
+
+    input {
+      width: 100px;
+      text-align: center;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      height: 250px;
+      margin: 30px auto;
+      background: #2980b9;
+      border: 5px solid #f1c40f;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    #plane {
+      position: absolute;
+      top: 100px;
+      left: 0;
+      width: 60px;
+      transition: left 0.1s linear;
+      filter: drop-shadow(2px 2px 5px black);
+    }
+
+    #multiplier {
+      font-size: 2.5em;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Aviator</h1>
+  <div>Balance: $<span id="balance">100.00</span></div>
+
+  <div>
+    Bet Amount: $<input type="number" id="betAmount" value="10" min="10">
+    <button onclick="startGame()">Start</button>
+    <button onclick="cashOut()">Cash Out</button>
+  </div>
+
+  <div id="multiplier">10.99x</div>
+
+  <div id="gameArea">
+    <img src="Screenshot_20250502-103247-removebg-preview.png" id="plane" alt="plane">
+  </div>
+
+  <p id="message"></p>
+
+  <script>
+    let balance = 100;
+    let multiplier = 1;
+    let gameInterval;
+    let cashout = false;
+    let isRunning = false;
+    let bet = 0;
+    let crashPoint = 0;
+    let planePos = 0;
+
+    const plane = document.getElementById("plane");
+
+    function updateDisplay() {
+      document.getElementById("balance").textContent = balance.toFixed(2);
+      document.getElementById("multiplier").textContent = multiplier.toFixed(2) + "x";
+    }
+
+    function startGame() {
+      if (isRunning) return;
+
+      bet = parseFloat(document.getElementById("betAmount").value);
+      if (bet > balance || bet <= 0) {
+        alert("Invalid bet amount.");
+        return;
+      }
+
+      balance -= bet;
+      multiplier = 1;
+      crashPoint = (Math.random() * 2 + 1.2).toFixed(2); // random crash
+      cashout = false;
+      isRunning = true;
+      planePos = 0;
+      plane.style.left = "0px";
+      document.getElementById("message").textContent = "";
+      updateDisplay();
+
+      gameInterval = setInterval(() => {
+        multiplier += 0.05;
+        planePos += 6;
+        plane.style.left = planePos + "px";
+        updateDisplay();
+
+        if (multiplier >= crashPoint) {
+          clearInterval(gameInterval);
+          isRunning = false;
+          if (!cashout) {
+            document.getElementById("message").textContent =
+              `Crashed at ${crashPoint}x! You lost $${bet.toFixed(2)}`;
+          }
+        }
+      }, 100);
+    }
+
+    function cashOut() {
+      if (!isRunning || cashout) return;
+      cashout = true;
+      clearInterval(gameInterval);
+      let winnings = bet * multiplier;
+      balance += winnings;
+      updateDisplay();
+      document.getElementById("message").textContent =
+        `Cashed out at ${multiplier.toFixed(2)}x — Won $${winnings.toFixed(2)}!`;
+      isRunning = false;
+    }
+  </script>
+
+</body>
+</html>               
